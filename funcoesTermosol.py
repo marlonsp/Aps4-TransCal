@@ -136,6 +136,3 @@ def geraSaida(nome,Ft,Ut,Epsi,Fi,Ti):
     f.write('\n\nTensoes internas [Pa]\n')
     f.write(str(Ti))
     f.close()
-    
-
-
