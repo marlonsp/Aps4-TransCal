@@ -27,6 +27,9 @@ def matriz_rigidez(x1,y1,x2,y2,e,a):
     
     return K
 
-#matriz de rigidez global
-print(N)
+for i in range(len(N[0])):
+    no = [N[0][i], N[1][i]]
+    print('Nó: ', no)
 
+K1 = matriz_rigidez(N[0][int(Inc[0][0])+1], N[1][int(Inc[0][0])+1], N[0][1], N[1][1], Inc[0][2], Inc[0][3])
+print('K1: ', K1)
