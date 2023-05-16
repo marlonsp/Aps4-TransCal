@@ -3,4 +3,4 @@
 ### kyaaaaa
 
 - [x] Matriz de Rigidez
-- [ ] 
+- [ ] Matriz
