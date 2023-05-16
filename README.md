@@ -2,5 +2,5 @@
 
 ### kyaaaaa
 
-- [ x ] Matriz de Rigidez
+- [x] Matriz de Rigidez
 - [ ] 
