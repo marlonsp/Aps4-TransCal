@@ -136,3 +136,11 @@ def geraSaida(nome,Ft,Ut,Epsi,Fi,Ti):
     f.write('\n\nTensoes internas [Pa]\n')
     f.write(str(Ti))
     f.close()
+
+def getDofsIndices(array):
+    import numpy as np
+    indices = np.zeros(len(array)*2,dtype=int)
+    for i in range(len(array)):
+        indices[i*2] = array[i]*2-2
+        indices[i*2+1] = array[i]*2-1
+    return indices

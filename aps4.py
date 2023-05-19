@@ -1,5 +1,5 @@
-from funcoesTermosol import importa, plota, geraSaida
-
+from funcoesTermosol import importa, plota, geraSaida, getDofsIndices
+import numpy as np
 #nn -> nº de nós
 #N -> matriz de nós
 #nm -> nº de membros
@@ -11,25 +11,47 @@ from funcoesTermosol import importa, plota, geraSaida
 
 [nn, N, nm, Inc, nc, F, nr, R] = importa('entrada.xlsx')
 
+def inverte_coluna_linha_matrix(matriz):
+    import numpy as np
+    matriz_invertida = np.zeros((len(matriz[0]),len(matriz)))
+    for i in range(len(matriz)):
+        for j in range(len(matriz[0])):
+            matriz_invertida[j][i] = matriz[i][j]
+    return matriz_invertida
+N = inverte_coluna_linha_matrix(N)
+
 def matriz_rigidez(x1,y1,x2,y2,e,a):
     import numpy as np
     import math as mt
     # Calcula o comprimento do elemento
     L = mt.sqrt((x2-x1)**2+(y2-y1)**2)
-    
+    print('L: ', L)
     # Calcula o seno e cosseno
     c = (x2-x1)/L
     s = (y2-y1)/L
-    
+    print('c: ', c)
+    print('s: ', s)
     # calcula matriz de rigidez do elemento, no sistema global
     K = np.array([[c**2, c*s, -c**2, -c*s],[c*s, s**2, -c*s, -s**2],[-c**2, -c*s, c**2, c*s],[-c*s, -s**2, c*s, s**2]])
     K = (e*a/L)*K
     
     return K
 
-for i in range(len(N[0])):
-    no = [N[0][i], N[1][i]]
-    print('Nó: ', no)
+print('N: ', N)
+print('Inc: ', Inc)
 
-K1 = matriz_rigidez(N[0][int(Inc[0][0])+1], N[1][int(Inc[0][0])+1], N[0][1], N[1][1], Inc[0][2], Inc[0][3])
-print('K1: ', K1)
+K = []
+ndof = 2*nn
+superK = np.zeros((ndof,ndof))
+for i in range(len(Inc)):
+    Kx = matriz_rigidez(N[int(Inc[i][0])-1][0], N[int(Inc[i][0])-1][1], N[int(Inc[i][1]-1)][0], N[int(Inc[i][1])-1][1], Inc[i][2], Inc[i][3])
+    e_dofs = getDofsIndices([int(Inc[i][0]), int(Inc[i][1])])
+    print('e_dofs: ', e_dofs)
+    superK[np.ix_(e_dofs, e_dofs)] += Kx
+    K.append(Kx)
+
+print('K1: ', K[0])
+print('K2: ', K[1])
+print('K3: ', K[2])
+
+print('superK1: ', superK)
