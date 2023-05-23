@@ -51,3 +51,28 @@ superK = np.delete(superK, list(map(int, (R[:,0]))), 1)
 newF = np.delete(F, list(map(int, (R[:,0]))), 0)
 # print(superK)
 
+def gauss_seidel(ite, tol, K, F): 
+    """
+    Args: 
+        ite: numero maximo de iteracoes
+        tol: tolerancia
+        K: matriz de rigidez
+        F: vetor de forcas
+    Returns:
+        u: vetor de deslocamentos
+        ei: erro maximo
+    """
+    # Metodo de Gauss-Seidel
+    x1, x2, x3 = 0, 0, 0
+    U = np.array([x1, x2, x3])
+    
+    for i in range(ite):
+        x1 = (F[0] - K[0,1]*x2 - K[0,2]*x3)/K[0,0]
+        x2 = (F[1] - K[1,0]*x1 - K[1,2]*x3)/K[1,1]
+        x3 = (F[2] - K[2,0]*x1 - K[2,1]*x2)/K[2,2]
+        U = np.array([x1, x2, x3])
+        ei = np.linalg.norm(np.dot(K, U) - F)/np.linalg.norm(F)
+        if ei < tol:
+            break
+
+    return U, ei
