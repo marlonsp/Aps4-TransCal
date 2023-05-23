@@ -10,16 +10,7 @@ import numpy as np
 #R -> vetor de restrições
 
 [nn, N, nm, Inc, nc, F, nr, R] = importa('entrada.xlsx')
-
-def inverte_coluna_linha_matrix(matriz):
-    import numpy as np
-    matriz_invertida = np.zeros((len(matriz[0]),len(matriz)))
-    for i in range(len(matriz)):
-        for j in range(len(matriz[0])):
-            matriz_invertida[j][i] = matriz[i][j]
-    return matriz_invertida
-N = inverte_coluna_linha_matrix(N)
-
+N = np.transpose(N)
 def matriz_rigidez(x1,y1,x2,y2,e,a):
     import numpy as np
     import math as mt
@@ -37,9 +28,10 @@ def matriz_rigidez(x1,y1,x2,y2,e,a):
     
     return K
 
+
+
 # print('N: ', N)
 # print('Inc: ', Inc)
-
 K = []
 ndof = 2*nn
 superK = np.zeros((ndof,ndof))
@@ -51,12 +43,11 @@ for i in range(len(Inc)):
     K.append(Kx)
 
 
-print(superK)
-
+# print(superK)
 # Aplicando as condições de contorno (drop de linhas e colunas com restrições)
-for i in range(len(R)-1, -1, -1):
-    print(i)
-    superK = np.delete(superK, int(R[i][0]), 0)
-    superK = np.delete(superK, int(R[i][0]), 1)
+superK = np.delete(superK, list(map(int, (R[:,0]))), 0)
+superK = np.delete(superK, list(map(int, (R[:,0]))), 1)
 
-print(superK)
+newF = np.delete(F, list(map(int, (R[:,0]))), 0)
+# print(superK)
+
