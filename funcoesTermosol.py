@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 A funcao 'plota' produz um gráfico da estrutura definida pela matriz de nos N 
 e pela incidencia Inc.
@@ -118,7 +118,6 @@ def importa(entradaNome):
         xouy = restr.cell(c+1,1).value
         GDL = no*2-(2-xouy) 
         R[c,0] = GDL-1
-
 
     return nn,N,nm,Inc,nc,F,nr,R
 
