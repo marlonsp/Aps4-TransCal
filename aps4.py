@@ -43,13 +43,14 @@ for i in range(len(Inc)):
     K.append(Kx)
 
 
-# print(superK)
 # Aplicando as condições de contorno (drop de linhas e colunas com restrições)
 superK = np.delete(superK, list(map(int, (R[:,0]))), 0)
 superK = np.delete(superK, list(map(int, (R[:,0]))), 1)
+print(superK)
 
-newF = np.delete(F, list(map(int, (R[:,0]))), 0)
-# print(superK)
+# newF = np.delete(F, list(map(int, (R[:,0]))), 0)
+newF = np.delete(F, list(map(int, (R[:,0]))), 0).squeeze()
+print(newF)
 
 def gauss_seidel(ite, tol, K, F): 
     """
@@ -63,16 +64,75 @@ def gauss_seidel(ite, tol, K, F):
         ei: erro maximo
     """
     # Metodo de Gauss-Seidel
-    x1, x2, x3 = 0, 0, 0
-    U = np.array([x1, x2, x3])
+    variaveis = {}
+
+    for i in range(len(F)):
+        variaveis["x"+str(i+1)] = 0
+    
+    U = np.array([])
+    for i in range(len(F)):
+        U = np.append(U, variaveis["x"+str(i+1)])
     
     for i in range(ite):
-        x1 = (F[0] - K[0,1]*x2 - K[0,2]*x3)/K[0,0]
-        x2 = (F[1] - K[1,0]*x1 - K[1,2]*x3)/K[1,1]
-        x3 = (F[2] - K[2,0]*x1 - K[2,1]*x2)/K[2,2]
-        U = np.array([x1, x2, x3])
+        for j in range(len(F)):
+            variaveis["x"+str(j+1)] = F[j]
+            for k in range(len(F)):
+                if k != j:
+                    variaveis["x"+str(j+1)] -= K[j,k]*variaveis["x"+str(k+1)]
+
+            variaveis["x"+str(j+1)] /= K[j,j]
+            U[j] = variaveis["x"+str(j+1)]
+
         ei = np.linalg.norm(np.dot(K, U) - F)/np.linalg.norm(F)
         if ei < tol:
             break
 
     return U, ei
+
+def jacobi(ite, tol, K, F): 
+    """
+    Args: 
+        ite: numero maximo de iteracoes
+        tol: tolerancia
+        K: matriz de rigidez
+        F: vetor de forcas
+    Returns:
+        u: vetor de deslocamentos
+        ei: erro maximo
+    """
+    # Metodo de Jacobi
+    variaveis_ant = {}
+    variaveis_pos = {}
+    for i in range(len(F)):
+        variaveis_ant["x"+str(i+1)] = 0
+        variaveis_pos["x"+str(i+1)] = 0
+
+    U = np.array([])
+    for i in range(len(F)):
+        U = np.append(U, variaveis_ant["x"+str(i+1)])
+
+    for i in range(ite):
+        for j in range(len(F)):
+            variaveis_pos["x"+str(j+1)] = F[j]
+            for k in range(len(F)):
+                if k != j:
+                    variaveis_pos["x"+str(j+1)] -= K[j,k]*variaveis_ant["x"+str(k+1)]
+
+            variaveis_pos["x"+str(j+1)] /= K[j,j]
+            U[j] = variaveis_ant["x"+str(j+1)]
+
+            if j == len(F)-1:
+                for k in range(len(F)):
+                    variaveis_ant["x"+str(k+1)] = variaveis_pos["x"+str(k+1)]
+
+        ei = np.linalg.norm(np.dot(K, U) - F)/np.linalg.norm(F)
+        if ei < tol:
+            break
+    
+    return U, ei
+
+ite = 100
+tol = 1e-6
+
+print("Gauss-Seidel:\n", gauss_seidel(ite, tol, superK, newF))
+print("Jacobi:\n", jacobi(ite, tol, superK, newF))
