@@ -119,7 +119,7 @@ def jacobi(ite, tol, K, F):
                     variaveis_pos["x"+str(j+1)] -= K[j,k]*variaveis_ant["x"+str(k+1)]
 
             variaveis_pos["x"+str(j+1)] /= K[j,j]
-            U[j] = variaveis_ant["x"+str(j+1)]
+            U[j] = variaveis_pos["x"+str(j+1)]
 
             if j == len(F)-1:
                 for k in range(len(F)):
