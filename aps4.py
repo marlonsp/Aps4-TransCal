@@ -34,23 +34,23 @@ def matriz_rigidez(x1,y1,x2,y2,e,a):
 # print('Inc: ', Inc)
 K = []
 ndof = 2*nn
-superK = np.zeros((ndof,ndof))
+superK_antes = np.zeros((ndof,ndof))
 for i in range(len(Inc)):
     Kx = matriz_rigidez(N[int(Inc[i][0])-1][0], N[int(Inc[i][0])-1][1], N[int(Inc[i][1]-1)][0], N[int(Inc[i][1])-1][1], Inc[i][2], Inc[i][3])
     e_dofs = getDofsIndices([int(Inc[i][0]), int(Inc[i][1])])
     # print('e_dofs: ', e_dofs)
-    superK[np.ix_(e_dofs, e_dofs)] += Kx
+    superK_antes[np.ix_(e_dofs, e_dofs)] += Kx
     K.append(Kx)
 
 
 # Aplicando as condições de contorno (drop de linhas e colunas com restrições)
-superK = np.delete(superK, list(map(int, (R[:,0]))), 0)
+superK = np.delete(superK_antes, list(map(int, (R[:,0]))), 0)
 superK = np.delete(superK, list(map(int, (R[:,0]))), 1)
-print(superK)
+print("superK:\n",superK)
 
 # newF = np.delete(F, list(map(int, (R[:,0]))), 0)
 newF = np.delete(F, list(map(int, (R[:,0]))), 0).squeeze()
-print(newF)
+print("newF:\n",newF)
 
 def gauss_seidel(ite, tol, K, F): 
     """
@@ -136,3 +136,54 @@ tol = 1e-6
 
 print("Gauss-Seidel:\n", gauss_seidel(ite, tol, superK, newF))
 print("Jacobi:\n", jacobi(ite, tol, superK, newF))
+
+deslocamentos_global = gauss_seidel(ite, tol, superK, newF)[0]
+
+#preencher o vetor de deslocamentos_global com os valores de deslocamentos_global nulos
+for i in range(len(R)):
+    deslocamentos_global = np.insert(deslocamentos_global, int(R[i][0]), 0)
+#dividir o vetor de deslocamentos_global em listas de 2 em 2
+deslocamentos = [deslocamentos_global[i:i+2] for i in range(0, len(deslocamentos_global), 2)]
+
+def deformação_específica_elemento(x1, y1, x2, y2, u,v):
+    import math as mt
+    # Calcula o comprimento do elemento
+    L = mt.sqrt((x2-x1)**2+(y2-y1)**2)
+    # Calcula o seno e cosseno
+    c = (x2-x1)/L
+    s = (y2-y1)/L
+    # Calcula a deformação específica
+    e = (c*(v[0]-u[0])+s*(v[1]-u[1]))/L
+    
+    return e
+
+
+
+deformações = []
+for i in range(len(Inc)):
+    deformações.append(deformação_específica_elemento(N[int(Inc[i][0])-1][0], N[int(Inc[i][0])-1][1], N[int(Inc[i][1]-1)][0], N[int(Inc[i][1])-1][1],deslocamentos[int(Inc[i][0])-1],deslocamentos[int(Inc[i][1])-1]))
+
+print("Deformações específicas:\n", deformações)
+
+def tensão_elemento(x1, y1, x2, y2, e, u,v):
+    # Calcula a tensão
+    import math as mt
+    # Calcula o comprimento do elemento
+    L = mt.sqrt((x2-x1)**2+(y2-y1)**2)
+    # Calcula o seno e cosseno
+    c = (x2-x1)/L
+    s = (y2-y1)/L
+    # Calcula a tensão
+    t = (e/L)*(c*(v[0]-u[0])+s*(v[1]-u[1]))
+    
+    return t
+
+tensões = []
+for i in range(len(Inc)):
+    tensões.append(tensão_elemento(N[int(Inc[i][0])-1][0], N[int(Inc[i][0])-1][1], N[int(Inc[i][1]-1)][0], N[int(Inc[i][1])-1][1],Inc[i][2], deslocamentos[int(Inc[i][0])-1],deslocamentos[int(Inc[i][1])-1]))
+
+print("Tensões:\n", tensões)
+
+# print f
+reacoes = np.dot(superK_antes, deslocamentos_global)
+print("Reações de apoio:\n", reacoes)
