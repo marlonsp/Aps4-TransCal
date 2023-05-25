@@ -131,8 +131,8 @@ def jacobi(ite, tol, K, F):
     
     return U, ei
 
-ite = 100
-tol = 1e-6
+ite = 1000
+tol = 1e-8
 
 print("Gauss-Seidel:\n", gauss_seidel(ite, tol, superK, newF))
 print("Jacobi:\n", jacobi(ite, tol, superK, newF))
@@ -194,3 +194,10 @@ print("Reações de apoio:\n", reacoes)
 areas = Inc[:,3]
 forças = areas*tensões
 print("Forças internas:\n", forças)
+
+with open('output.txt', 'w') as file:
+    file.write("Reacoes de apoio [N]\n" + str(reacoes.reshape(-1, 1)) + "\n\n")
+    file.write("Deslocamentos [m]\n" + str(deslocamentos_global.reshape(-1, 1)) + "\n\n")
+    file.write("Deformacoes []\n" + str(np.array(deformações).reshape(-1, 1)) + "\n\n")
+    file.write("Forcas internas [N]\n" + str(np.array(forças).reshape(-1, 1)) + "\n\n")
+    file.write("Tensoes internas [Pa]\n" + str(np.array(tensões).reshape(-1, 1)) + "\n")
