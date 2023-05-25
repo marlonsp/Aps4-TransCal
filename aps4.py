@@ -184,6 +184,13 @@ for i in range(len(Inc)):
 
 print("Tensões:\n", tensões)
 
-# print f
+print(superK_antes)
 reacoes = np.dot(superK_antes, deslocamentos_global)
+#tirar os valores sem restrição do vetor de reações
+reacoes = reacoes[list(map(int, (R[:,0])))] 
 print("Reações de apoio:\n", reacoes)
+
+#area do elemento, quarta coluna da matriz Inc
+areas = Inc[:,3]
+forças = areas*tensões
+print("Forças internas:\n", forças)
