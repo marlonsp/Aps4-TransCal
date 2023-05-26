@@ -137,9 +137,164 @@ def geraSaida(nome,Ft,Ut,Epsi,Fi,Ti):
     f.close()
 
 def getDofsIndices(array):
+    # Retorna os indices dos graus de liberdade de um vetor de nos
+    '''
+    Args:
+        array: vetor de nos
+    Returns:
+        indices: vetor com os indices dos graus de liberdade
+    '''
     import numpy as np
     indices = np.zeros(len(array)*2,dtype=int)
     for i in range(len(array)):
         indices[i*2] = array[i]*2-2
         indices[i*2+1] = array[i]*2-1
     return indices
+
+def matriz_rigidez(x1,y1,x2,y2,e,a):
+    # Calcula a matriz de rigidez de um elemento de barra
+    '''
+    Args:
+        x1,y1,x2,y2: coordenadas dos nos do elemento
+        e: modulo de elasticidade
+        a: area da secao transversal
+    Returns:
+        K: matriz de rigidez do elemento
+    '''
+    import numpy as np
+    import math as mt
+    # Calcula o comprimento do elemento
+    L = mt.sqrt((x2-x1)**2+(y2-y1)**2)
+    # print('L: ', L)
+    # Calcula o seno e cosseno
+    c = (x2-x1)/L
+    s = (y2-y1)/L
+    # print('c: ', c)
+    # print('s: ', s)
+    # calcula matriz de rigidez do elemento, no sistema global
+    K = np.array([[c**2, c*s, -c**2, -c*s],[c*s, s**2, -c*s, -s**2],[-c**2, -c*s, c**2, c*s],[-c*s, -s**2, c*s, s**2]])
+    K = (e*a/L)*K
+    
+    return K
+def gauss_seidel(ite, tol, K, F): 
+    # Metodo de Gauss-Seidel para resolver sistemas lineares
+    """
+    Args: 
+        ite: numero maximo de iteracoes
+        tol: tolerancia
+        K: matriz de rigidez
+        F: vetor de forcas
+    Returns:
+        u: vetor de deslocamentos
+        ei: erro maximo
+    """
+    import numpy as np
+    # Metodo de Gauss-Seidel
+    variaveis = {}
+
+    for i in range(len(F)):
+        variaveis["x"+str(i+1)] = 0
+    
+    U = np.array([])
+    for i in range(len(F)):
+        U = np.append(U, variaveis["x"+str(i+1)])
+    
+    for i in range(ite):
+        for j in range(len(F)):
+            variaveis["x"+str(j+1)] = F[j]
+            for k in range(len(F)):
+                if k != j:
+                    variaveis["x"+str(j+1)] -= K[j,k]*variaveis["x"+str(k+1)]
+
+            variaveis["x"+str(j+1)] /= K[j,j]
+            U[j] = variaveis["x"+str(j+1)]
+
+        ei = np.linalg.norm(np.dot(K, U) - F)/np.linalg.norm(F)
+        if ei < tol:
+            break
+
+    return U, ei
+def jacobi(ite, tol, K, F): 
+    # Metodo de Jacobi para resolver sistemas lineares
+    """
+    Args: 
+        ite: numero maximo de iteracoes
+        tol: tolerancia
+        K: matriz de rigidez
+        F: vetor de forcas
+    Returns:
+        u: vetor de deslocamentos
+        ei: erro maximo
+    """
+    import numpy as np
+    # Metodo de Jacobi
+    variaveis_ant = {}
+    variaveis_pos = {}
+    for i in range(len(F)):
+        variaveis_ant["x"+str(i+1)] = 0
+        variaveis_pos["x"+str(i+1)] = 0
+
+    U = np.array([])
+    for i in range(len(F)):
+        U = np.append(U, variaveis_ant["x"+str(i+1)])
+
+    for i in range(ite):
+        for j in range(len(F)):
+            variaveis_pos["x"+str(j+1)] = F[j]
+            for k in range(len(F)):
+                if k != j:
+                    variaveis_pos["x"+str(j+1)] -= K[j,k]*variaveis_ant["x"+str(k+1)]
+
+            variaveis_pos["x"+str(j+1)] /= K[j,j]
+            U[j] = variaveis_pos["x"+str(j+1)]
+
+            if j == len(F)-1:
+                for k in range(len(F)):
+                    variaveis_ant["x"+str(k+1)] = variaveis_pos["x"+str(k+1)]
+
+        ei = np.linalg.norm(np.dot(K, U) - F)/np.linalg.norm(F)
+        if ei < tol:
+            break
+    
+    return U, ei
+
+def deformação_específica_elemento(x1, y1, x2, y2, u,v):
+    # Calcula a deformação específica
+    '''
+    Args:
+        x1,y1,x2,y2: coordenadas dos nos do elemento
+        u,v: deslocamentos dos nos do elemento
+    Returns:
+        e: deformação específica
+    '''
+    import math as mt
+    # Calcula o comprimento do elemento
+    L = mt.sqrt((x2-x1)**2+(y2-y1)**2)
+    # Calcula o seno e cosseno
+    c = (x2-x1)/L
+    s = (y2-y1)/L
+    # Calcula a deformação específica
+    e = (c*(v[0]-u[0])+s*(v[1]-u[1]))/L
+    
+    return e
+
+def tensão_elemento(x1, y1, x2, y2, e, u,v):
+    # Calcula a tensão
+    '''
+    Args:
+        x1,y1,x2,y2: coordenadas dos nos do elemento
+        e: modulo de elasticidade
+        u,v: deslocamentos dos nos do elemento
+    Returns:
+        t: tensão
+    '''
+    import math as mt
+    # Calcula o comprimento do elemento
+    L = mt.sqrt((x2-x1)**2+(y2-y1)**2)
+    # Calcula o seno e cosseno
+    c = (x2-x1)/L
+    s = (y2-y1)/L
+    # Calcula a tensão
+    t = (e/L)*(c*(v[0]-u[0])+s*(v[1]-u[1]))
+    
+    return t
